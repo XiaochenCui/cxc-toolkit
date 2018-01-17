@@ -1,5 +1,5 @@
 cxc-toolkit
-=======
+===========
 
 .. image:: https://img.shields.io/pypi/v/cxc-toolkit.svg
     :target: https://pypi.python.org/pypi/cxc-toolkit
