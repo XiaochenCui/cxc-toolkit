@@ -1,6 +1,8 @@
 import unittest
 
-from cxc_toolkit.hodgepodge import xor, string_to_hex
+from cxc_toolkit.hodgepodge import (xor, string_to_hex,
+                                    hex_to_string,
+                                    )
 
 
 class TestHodgepodge(unittest.TestCase):
@@ -18,9 +20,12 @@ class TestHodgepodge(unittest.TestCase):
         string = "123"
         hex_string = "313233"
         assert string_to_hex(string) == hex_string
+        assert string == hex_to_string(hex_string)
         string = "az9?"
         hex_string = "617a393f"
         assert string_to_hex(string) == hex_string
+        assert string == hex_to_string(hex_string)
         string = "崔晓晨"
         hex_string = "e5b494e69993e699a8"
         assert string_to_hex(string) == hex_string
+        assert string == hex_to_string(hex_string)

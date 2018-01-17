@@ -1,3 +1,6 @@
+import binascii
+
+
 def xor(hex_1, hex_2):
     """
     Xor hex_1 and hex_2, return the result as a hex
@@ -34,3 +37,15 @@ def string_to_hex(s):
     :rtype: str
     """
     return s.encode("utf-8").hex()
+
+
+def hex_to_string(h):
+    """
+    Return string who's hexadecimal corresponds to hex
+
+    :param h:
+    :type h: str
+    :return:
+    :rtype: str
+    """
+    return binascii.unhexlify(h).decode("utf-8")
