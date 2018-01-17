@@ -4,10 +4,10 @@ def xor(hex_1, hex_2):
 
     :param hex_1: string represent of a hex
     :param hex_2: string represent of another hex
-    :type hex_1: string
-    :type hex_2: string
+    :type hex_1: str
+    :type hex_2: str
     :return: xor of hex_1 and hex_2 and present as string
-    :rtype: string
+    :rtype: str
     """
     # init variable
     xor_hex = ""
@@ -22,3 +22,15 @@ def xor(hex_1, hex_2):
             xor_hex += hex_1[i:]
             break
     return xor_hex
+
+
+def string_to_hex(s):
+    """
+    Return hex representation of s
+
+    :param s:
+    :type s: str
+    :return:
+    :rtype: str
+    """
+    return s.encode("utf-8").hex()
