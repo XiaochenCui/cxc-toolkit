@@ -6,12 +6,18 @@ from os import path
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
-        long_description = f.read()
+with open(path.join(here, 'README.rst'), encoding='utf-8') as readme_file:
+    long_description = readme_file.read()
+
+# Get the version number from VERSION file
+with open(path.join(here, 'VERSION'), encoding='utf-8') as version_file:
+    version = version_file.read().strip()
+
+print(version)
 
 setup(
     name='cxc-toolkit',
-    version='0.0.3',
+    version=version,
     description='Toolbox contains a lot of utility functions',
     long_description=long_description,
     url='https://github.com/XiaochenCui/cxc-toolkit',
