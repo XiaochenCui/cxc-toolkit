@@ -29,3 +29,6 @@ class TestHodgepodge(unittest.TestCase):
         hex_string = "e5b494e69993e699a8"
         assert string_to_hex(string) == hex_string
         assert string == hex_to_string(hex_string)
+        string = "\\xff\\xff"
+        hex_string = "ffff"
+        assert string == hex_to_string(hex_string)

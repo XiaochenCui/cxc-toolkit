@@ -36,7 +36,7 @@ def string_to_hex(s):
     :return:
     :rtype: str
     """
-    return s.encode("utf-8").hex()
+    return s.encode("utf-8", errors="backslashreplace").hex()
 
 
 def hex_to_string(h):
@@ -48,4 +48,4 @@ def hex_to_string(h):
     :return:
     :rtype: str
     """
-    return binascii.unhexlify(h).decode("utf-8")
+    return binascii.unhexlify(h).decode("utf-8", errors="backslashreplace")
