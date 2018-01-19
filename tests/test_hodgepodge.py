@@ -2,6 +2,8 @@ import unittest
 
 from cxc_toolkit.hodgepodge import (xor, string_to_hex,
                                     hex_to_string,
+                                    is_word,
+                                    is_normal_character,
                                     )
 
 
@@ -32,3 +34,21 @@ class TestHodgepodge(unittest.TestCase):
         string = "\\xff\\xff"
         hex_string = "ffff"
         assert string == hex_to_string(hex_string)
+
+    def test_is_word(self):
+        assert is_word("a")
+        assert is_word("C")
+        assert is_word("1")
+        assert is_word("0")
+        assert is_word("_")
+        assert not is_word(";")
+        assert not is_word("\\")
+        assert not is_word(" ")
+
+    def test_is_normal_character(self):
+        assert is_normal_character("a")
+        assert is_normal_character(" ")
+        assert is_normal_character(".")
+        assert is_normal_character("\n")
+        assert not is_normal_character("@")
+        assert not is_normal_character("\\")

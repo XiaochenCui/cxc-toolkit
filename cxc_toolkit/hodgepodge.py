@@ -1,3 +1,4 @@
+import re
 import binascii
 
 
@@ -41,7 +42,7 @@ def string_to_hex(s):
 
 def hex_to_string(h):
     """
-    Return string who's hexadecimal corresponds to hex
+    Return utf-8 string who's hexadecimal corresponds to hex
 
     :param h:
     :type h: str
@@ -49,3 +50,49 @@ def hex_to_string(h):
     :rtype: str
     """
     return binascii.unhexlify(h).decode("utf-8", errors="backslashreplace")
+
+
+def hex_to_ascii_string(h):
+    """
+    Return ascii decoded string who's hexadecimal corresponds to hex
+
+    :param h:
+    :type h: str
+    :return:
+    :rtype: str
+    """
+    return binascii.unhexlify(h).decode("ascii", errors="backslashreplace")
+
+
+def is_word(c):
+    """
+    Determine if character c is word.
+    Word means in set {a-z, A-Z, 0-9, "_"}
+
+    :param c:
+    :type c: str
+    :return:
+    :rtype: bool
+    """
+    if len(c) != 1:
+        raise ValueError("c must be a string with length 1")
+
+    regex = r"^\w$"
+    pattern = re.compile(regex)
+    match = pattern.match(c)
+    return bool(match)
+
+
+def is_normal_character(c):
+    """
+    Determine if character c is normal character.
+    Normal character means in set {word, space, ",", "."}
+
+    :param c:
+    :type c: str
+    :return:
+    :rtype: bool
+    """
+    if is_word(c) or c.isspace() or c in ",.":
+        return True
+    return False
