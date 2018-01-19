@@ -1,6 +1,8 @@
 import unittest
 
-from cxc_toolkit.hodgepodge import (xor, string_to_hex,
+from cxc_toolkit.hodgepodge import (xor,
+                                    xor_longest,
+                                    string_to_hex,
                                     hex_to_string,
                                     is_word,
                                     is_normal_character,
@@ -14,9 +16,12 @@ class TestHodgepodge(unittest.TestCase):
         assert xor_hex == "e86b"
         hex_1 = "135af170b8c9"
         hex_2 = "c1879ab9010a34f"
-        xor_hex = "d2dd6bc9b9c334f"
+        xor_hex = "d2dd6bc9b9c3"
+        xor_longest_hex = "d2dd6bc9b9c334f"
         assert xor_hex == xor(hex_1, hex_2)
         assert xor_hex == xor(hex_2, hex_1)
+        assert xor_longest_hex == xor_longest(hex_1, hex_2)
+        assert xor_longest_hex == xor_longest(hex_2, hex_1)
 
     def test_string_to_hex(self):
         string = "123"
