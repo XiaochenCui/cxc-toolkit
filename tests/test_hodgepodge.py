@@ -2,8 +2,6 @@ import unittest
 
 from cxc_toolkit.hodgepodge import (xor_bytes,
                                     xor_hex,
-                                    string_to_hex,
-                                    hex_to_string,
                                     is_word,
                                     is_normal_character,
                                     )
@@ -45,23 +43,6 @@ class TestHodgepodge(unittest.TestCase):
         assert xor_shortest_hex == xor_hex(hex_2, hex_1)
         assert xor_longest_hex == xor_hex(hex_1, hex_2, longest=True)
         assert xor_longest_hex == xor_hex(hex_2, hex_1, longest=True)
-
-    def test_string_to_hex(self):
-        string = "123"
-        hex_string = "313233"
-        assert string_to_hex(string) == hex_string
-        assert string == hex_to_string(hex_string)
-        string = "az9?"
-        hex_string = "617a393f"
-        assert string_to_hex(string) == hex_string
-        assert string == hex_to_string(hex_string)
-        string = "崔晓晨"
-        hex_string = "e5b494e69993e699a8"
-        assert string_to_hex(string) == hex_string
-        assert string == hex_to_string(hex_string)
-        string = "\\xff\\xff"
-        hex_string = "ffff"
-        assert string == hex_to_string(hex_string)
 
     def test_is_word(self):
         assert is_word("a")

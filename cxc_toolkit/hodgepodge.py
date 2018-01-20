@@ -1,5 +1,4 @@
 import re
-import binascii
 
 
 def xor_bytes(bytes_1, bytes_2, longest=False):
@@ -8,10 +7,10 @@ def xor_bytes(bytes_1, bytes_2, longest=False):
 
     :param bytes_1:
     :param bytes_2:
-    :type bytes_1:
-    :type bytes_2:
+    :type ytes_1: bytes
+    :type bytes_2: bytes
     :return:
-    :rtype:
+    :rtype: bytes
     """
     # init variables
     bytearray_1 = bytearray(bytes_1)
@@ -58,42 +57,6 @@ def xor_hex(hex_1, hex_2, longest=False):
                 xor_hex += hex_1[i:]
             break
     return xor_hex
-
-
-def string_to_hex(s):
-    """
-    Return hex representation of s
-
-    :param s:
-    :type s: str
-    :return:
-    :rtype: str
-    """
-    return s.encode("utf-8", errors="backslashreplace").hex()
-
-
-def hex_to_string(h):
-    """
-    Return utf-8 string who's hexadecimal corresponds to hex
-
-    :param h:
-    :type h: str
-    :return:
-    :rtype: str
-    """
-    return binascii.unhexlify(h).decode("utf-8", errors="backslashreplace")
-
-
-def hex_to_ascii_string(h):
-    """
-    Return ascii decoded string who's hexadecimal corresponds to hex
-
-    :param h:
-    :type h: str
-    :return:
-    :rtype: str
-    """
-    return binascii.unhexlify(h).decode("ascii", errors="backslashreplace")
 
 
 def is_word(c):
