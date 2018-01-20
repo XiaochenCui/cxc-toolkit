@@ -10,6 +10,9 @@ cxc-toolkit
 .. image:: https://img.shields.io/travis/XiaochenCui/cxc-toolkit.svg
     :target: https://travis-ci.org/XiaochenCui/cxc-toolkit
 
+.. image:: https://codecov.io/gh/XiaochenCui/cxc-toolkit/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/XiaochenCui/cxc-toolkit
+
 Toolbox contains a lot of utility functions
 
 Installation
