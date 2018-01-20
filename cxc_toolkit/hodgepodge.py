@@ -95,12 +95,15 @@ def is_word(c):
     Word means in set {a-z, A-Z, 0-9, "_"}
 
     :param c:
-    :type c: str
+    :type c: str/bytes
     :return:
     :rtype: bool
     """
     if len(c) != 1:
         raise ValueError("c must be a string with length 1")
+
+    if isinstance(c, bytes):
+        c = c.decode("ascii", errors="ignore")
 
     regex = r"^\w$"
     pattern = re.compile(regex)
@@ -114,10 +117,13 @@ def is_normal_character(c):
     Normal character means in set {word, space, ",", "."}
 
     :param c:
-    :type c: str
+    :type c: str/bytes
     :return:
     :rtype: bool
     """
+    if isinstance(c, bytes):
+        c = c.decode("ascii", errors="ignore")
+
     if is_word(c) or c.isspace() or c in ",.":
         return True
     return False

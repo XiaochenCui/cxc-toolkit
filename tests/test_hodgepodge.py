@@ -46,14 +46,30 @@ class TestHodgepodge(unittest.TestCase):
         assert is_word("1")
         assert is_word("0")
         assert is_word("_")
+
+        assert is_word(b"1")
+        assert is_word(b"a")
+        assert is_word(b"_")
+
         assert not is_word(";")
         assert not is_word("\\")
         assert not is_word(" ")
+
+        assert not is_word(b";")
+        assert not is_word(b"\\")
+        assert not is_word(b" ")
 
     def test_is_normal_character(self):
         assert is_normal_character("a")
         assert is_normal_character(" ")
         assert is_normal_character(".")
         assert is_normal_character("\n")
+
+        assert is_normal_character(b"a")
+        assert is_normal_character(b" ")
+
         assert not is_normal_character("@")
         assert not is_normal_character("\\")
+
+        assert not is_normal_character(b"@")
+        assert not is_normal_character(b"\\")
