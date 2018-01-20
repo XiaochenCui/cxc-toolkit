@@ -63,6 +63,9 @@ class TestHodgepodge(unittest.TestCase):
         assert not is_word(b"\\")
         assert not is_word(b" ")
 
+        with self.assertRaises(ValueError):
+            is_word("hi")
+
     def test_is_normal_character(self):
         assert is_normal_character("a")
         assert is_normal_character(" ")
