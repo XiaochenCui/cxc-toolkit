@@ -13,8 +13,6 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as readme_file:
 with open(path.join(here, 'VERSION'), encoding='utf-8') as version_file:
     version = version_file.read().strip()
 
-print(version)
-
 setup(
     name='cxc-toolkit',
     version=version,
