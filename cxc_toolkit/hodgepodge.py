@@ -1,5 +1,6 @@
 import re
 
+
 def xor_hex(hex_1, hex_2, longest=False):
     """
     Xor hex_1 and hex_2, return the result as a hex
