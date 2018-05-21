@@ -1,36 +1,13 @@
-import unittest
+from nose.tools import assert_raises
 
-from cxc_toolkit.hodgepodge import (xor_bytes,
-                                    xor_hex,
-                                    is_word,
-                                    is_normal_character,
-                                    )
+from cxc_toolkit.hodgepodge import (
+    xor_hex,
+    is_word,
+    is_normal_character,
+)
 
 
-class TestHodgepodge(unittest.TestCase):
-
-    def test_xor_bytes(self):
-        bytes_1 = b"h3ib"
-        bytes_2 = b"wkmn"
-        xor_shortest_hex = "1f58040c"
-        xor_longest_hex = xor_shortest_hex
-        assert xor_shortest_hex == xor_bytes(bytes_1, bytes_2).hex()
-        assert xor_shortest_hex == xor_bytes(bytes_2, bytes_1).hex()
-        assert xor_longest_hex == xor_bytes(bytes_1, bytes_2,
-                                            longest=True).hex()
-        assert xor_longest_hex == xor_bytes(bytes_2, bytes_1,
-                                            longest=True).hex()
-
-        bytes_1 = b"1\".# s_hi+"
-        bytes_2 = b"@w-ch`~ss123&&"
-        xor_shortest_hex = "715503404813211b1a1a"
-        xor_longest_hex = "715503404813211b1a1a32332626"
-        assert xor_shortest_hex == xor_bytes(bytes_1, bytes_2).hex()
-        assert xor_shortest_hex == xor_bytes(bytes_2, bytes_1).hex()
-        assert xor_longest_hex == xor_bytes(bytes_1, bytes_2,
-                                            longest=True).hex()
-        assert xor_longest_hex == xor_bytes(bytes_2, bytes_1,
-                                            longest=True).hex()
+class TestHodgepodge():
 
     def test_xor_hex(self):
         xor_shortest_hex = xor_hex("12ab", "fac0")
@@ -63,7 +40,7 @@ class TestHodgepodge(unittest.TestCase):
         assert not is_word(b"\\")
         assert not is_word(b" ")
 
-        with self.assertRaises(ValueError):
+        with assert_raises(ValueError):
             is_word("hi")
 
     def test_is_normal_character(self):
