@@ -1,17 +1,14 @@
-def xor(bytes_1, bytes_2, longest=False):
+def xor(byte_1, byte_2, longest=False):
     """
-    Xor bytes_1 and bytes_2, return the result as a bytes
+    Xor byte_1 and byte_2, return the result as a bytes
 
-    :param bytes_1:
-    :param bytes_2:
     :type ytes_1: bytes
-    :type bytes_2: bytes
-    :return:
+    :type byte_2: bytes
     :rtype: bytes
     """
     # init variables
-    bytearray_1 = bytearray(bytes_1)
-    bytearray_2 = bytearray(bytes_2)
+    bytearray_1 = bytearray(byte_1)
+    bytearray_2 = bytearray(byte_2)
     xor_bytearray = bytearray()
 
     # make bytearray_1 be the longest bytearray
@@ -26,3 +23,16 @@ def xor(bytes_1, bytes_2, longest=False):
                 xor_bytearray += bytearray_1[i:]
             break
     return bytes(xor_bytearray)
+
+
+def to_int(byte):
+    """
+    Convert bytes to int
+
+    :type byte: bytes
+    :rtype: int
+    """
+    s = 0
+    for i, number in enumerate(byte):
+        s = s * 256 + number
+    return s
