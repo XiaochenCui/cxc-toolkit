@@ -1,4 +1,3 @@
-import struct
 from nose.tools import assert_raises
 
 from cxc_toolkit.integer import (
