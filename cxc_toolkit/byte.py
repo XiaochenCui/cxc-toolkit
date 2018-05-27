@@ -1,3 +1,6 @@
+from cxc_toolkit import integer
+
+
 def xor(byte_1, byte_2, longest=False):
     """
     Xor byte_1 and byte_2, return the result as a bytes
@@ -36,3 +39,14 @@ def to_int(byte):
     for i, number in enumerate(byte):
         s = s * 256 + number
     return s
+
+
+def add(byte, addtions):
+    """
+    Add int to bytes
+
+    :type byte: bytes
+    :type addtions: int
+    :rtype: bytes
+    """
+    return integer.to_bytes(to_int(byte) + addtions, bytes_size=len(byte))

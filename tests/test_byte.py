@@ -2,6 +2,7 @@ import struct
 from cxc_toolkit.byte import (
     xor,
     to_int,
+    add,
 )
 
 
@@ -46,3 +47,12 @@ class TestByte():
         number = number_4 * 65536 + number_2
         byte = byte_4 + byte_2
         assert to_int(byte) == number
+
+    def test_add(self):
+        byte = b'\x3d\x89\xa0\x28\x3a\xb3\xcd\xf3\xca\x00\x0c\xd3'
+        number = 1
+        byte_sum = b'\x3d\x89\xa0\x28\x3a\xb3\xcd\xf3\xca\x00\x0c\xd4'
+        assert add(byte, number) == byte_sum
+        number = 37017096
+        byte_sum = b'\x3d\x89\xa0\x28\x3a\xb3\xcd\xf3\xcc\x34\xe2\xdb'
+        assert add(byte, number) == byte_sum
