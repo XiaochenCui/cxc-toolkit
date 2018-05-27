@@ -1,11 +1,11 @@
 import struct
-from cxc_toolkit.bytes import (
+from cxc_toolkit.byte import (
     xor,
     to_int,
 )
 
 
-class TestBytes():
+class TestByte():
 
     def test_xor(self):
         byte_1 = b"h3ib"
