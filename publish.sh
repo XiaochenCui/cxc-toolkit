@@ -2,6 +2,8 @@
 
 VERSION=$(<VERSION)
 
+echo "Publishing version $VERSION"
+
 package() {
     python setup.py bdist_wheel
 }
