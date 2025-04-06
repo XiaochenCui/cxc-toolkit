@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION=$(<VERSION)
+VERSION="0.7.0"
 
 echo "Publishing version $VERSION"
 
