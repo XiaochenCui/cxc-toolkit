@@ -1,7 +1,3 @@
-# Usage:
-# 1. Put the parent directory's path in the PYTHONPATH environment variable.
-# 2. Import it using "import xiaochen_py".
-
 import datetime
 import io
 import json
@@ -16,6 +12,7 @@ from io import BufferedWriter
 from typing import List, IO
 import logging
 import signal
+import psutil
 
 
 DRY_RUN = False
@@ -51,18 +48,51 @@ def tee_print(input_str: str, writers: List[IO]):
 
 
 # def tee_output(process, writers):
-def tee_output(process: subprocess.Popen, writers: List[IO]):
+def tee_output(
+    process: subprocess.Popen, writers: List[IO], kill_on_output: Optional[str] = None
+):
     """
     Capture the subprocess output, write it to multiple writers simultaneously.
 
     Args:
     - process: The subprocess.Popen object.
     - writers: A list of file-like objects (e.g., sys.stdout, file, BytesIO) to write the output to.
+    - kill_on_output: If provided, schedule killing the process 1s after a matching substring is observed in stdout/stderr.
     """
 
     # b"" indicates the end of the iteration.
     # (The iteration stops when process.stdout.readline returns b"".)
+    has_scheduled_kill = False
+
     for line in iter(process.stdout.readline, b""):
+        if kill_on_output and not has_scheduled_kill:
+            try:
+                decoded_line = line.decode("utf-8", errors="ignore")
+            except Exception:
+                decoded_line = ""
+            if kill_on_output in decoded_line:
+                has_scheduled_kill = True
+                logging.warning(
+                    f"Detected kill_on_output substring '{kill_on_output}'. Will kill the process in 1 second."
+                )
+
+                def kill_if_running():
+                    if process.poll() is None:
+                        logging.warning(
+                            "Killing process group (SIGKILL) due to kill_on_output trigger"
+                        )
+                        try:
+                            os.killpg(process.pid, signal.SIGKILL)
+                        except Exception as e:
+                            logging.error(f"Failed to kill process group: {e}")
+                            try:
+                                process.kill()
+                            except Exception as e2:
+                                logging.error(f"Fallback process.kill() failed: {e2}")
+
+                timer = threading.Timer(1.0, kill_if_running)
+                timer.daemon = True
+                timer.start()
         for writer in writers:
             if isinstance(writer, io.TextIOWrapper):
                 writer.write(line.decode("utf-8"))
@@ -137,14 +167,17 @@ def run_command(
         stderr=stderr_target,
         text=False,
         bufsize=1000,
+        start_new_session=True,  # so we can kill the whole process group with SIGKILL
     )
 
     def signal_handler(sig, frame):
         logging.debug(f"get signal: {sig}({signal.strsignal(sig)}), frame: {frame}")
         if sig == signal.SIGINT:
-            # kill the process when get SIGINT
-            logging.debug("got SIGINT, killing the process")
-        process.kill()
+            logging.debug("got SIGINT, killing the process group with SIGKILL")
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except Exception:
+            process.kill()
 
     # NB: SIGKILL cannot be caught, blocked, or ignored.
     # https://docs.python.org/3/library/signal.html#signal.SIGKILL
@@ -166,7 +199,9 @@ def run_command(
     writers.append(writer)
 
     # Create a thread to handle the tee output
-    thread = threading.Thread(target=tee_output, args=(process, writers))
+    thread = threading.Thread(
+        target=tee_output, args=(process, writers, kill_on_output)
+    )
     thread.start()
 
     # Wait for the subprocess to finish
@@ -179,12 +214,14 @@ def run_command(
     if not slient:
         print(f"command finished in {duration:.2f} seconds.")
 
-    if raise_on_failure and process.returncode != 0:
-        # logging.error(f"command output: {buffer.getvalue().decode('utf-8')}")
-        logging.error(f"return code: {process.returncode}")
-        raise subprocess.CalledProcessError(
-            returncode=process.returncode, cmd=command, output=buffer.getvalue()
-        )
+    if raise_on_failure:
+        if process.returncode not in [0, -9]:
+            # 0: normal exit
+            # -9: killed by SIGKILL
+            logging.error(f"return code: {process.returncode}")
+            raise subprocess.CalledProcessError(
+                returncode=process.returncode, cmd=command, output=buffer.getvalue()
+            )
 
     os.chdir(original_dir)
 
@@ -197,12 +234,23 @@ class Process:
     def __init__(self, pid: int):
         self.pid = pid
 
-    def exit(self):
+    def terminate(self, terminate_descendants: bool = True):
         """
         Terminate the process.
         """
         try:
             print(f"terminating process {self.pid}")
+
+            if terminate_descendants:
+                p = psutil.Process(self.pid)
+                for child in p.children(recursive=True):
+                    print(f"terminating child process {child.pid}")
+
+                    # the normal kill
+                    # child.terminate()
+
+                    # the force kill
+                    child.kill()
 
             # the normal kill
             # os.kill(self.pid, signal.SIGTERM)
@@ -225,7 +273,7 @@ def run_background(
         work_dir (Optional[str], optional): The directory to run the command in. If None, uses the current directory.
 
     Returns:
-        int: The PID of the background process.
+        Process: The Process object of the background process.
     """
     original_dir = os.getcwd()
 
