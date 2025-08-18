@@ -1,6 +1,10 @@
 #!/bin/sh
 
-VERSION="0.8.0"
+# 1. pip install twine
+# 2. update "VERSION" file
+# 3. get the token from https://pypi.org/manage/account/
+
+VERSION="0.8.1"
 
 echo "Publishing version $VERSION"
 
