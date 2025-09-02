@@ -33,4 +33,7 @@ setup(
     ],
     keywords='toolkit',
     packages=find_packages(),
+    install_requires=[
+        'psutil',
+    ],
 )

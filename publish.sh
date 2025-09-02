@@ -4,7 +4,7 @@
 # 2. update "VERSION" file
 # 3. get the token from https://pypi.org/manage/account/
 
-VERSION="0.8.1"
+VERSION=$(cat VERSION)
 
 echo "Publishing version $VERSION"
 
