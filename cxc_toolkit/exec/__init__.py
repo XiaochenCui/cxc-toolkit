@@ -108,7 +108,7 @@ def run_command(
     log_path: Optional[str] = None,
     stream_output: bool = True,
     kill_on_output: Optional[str] = None,
-    raise_on_failure: bool = True,
+    ignore_failure: bool = False,
     slient: bool = False,
     work_dir: Optional[str] = None,
 ) -> Tuple[bytes, int]:
@@ -123,7 +123,7 @@ def run_command(
         stream_output (bool, optional): If True, streams the output to stdout while executing. Defaults to False.
         kill_on_output (Optional[str], optional): If the given string is found in the output, the process will be killed after 1 second.
                                                  Defaults to None.
-        raise_on_failure: Throw an exception when the command exit with a non-zero exit code.
+        ignore_failure: If True, do not throw an exception when the command exits with a non-zero exit code.
 
     Returns:
         Tuple[str, int]: A tuple containing the output of the command as a string and the exit code of the process.
@@ -214,7 +214,7 @@ def run_command(
     if not slient:
         print(f"command finished in {duration:.2f} seconds.")
 
-    if raise_on_failure:
+    if not ignore_failure:
         if process.returncode not in [0, -9]:
             # 0: normal exit
             # -9: killed by SIGKILL
