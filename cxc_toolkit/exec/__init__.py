@@ -1,3 +1,4 @@
+import atexit
 import datetime
 import io
 import json
@@ -15,15 +16,102 @@ import signal
 import psutil
 
 
-DRY_RUN = False
-
-
 # Configure the logging system
 logging.basicConfig(
     level=logging.DEBUG,
     format="[%(asctime)s] [%(levelname)s] [%(filename)s:%(lineno)d] %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
+
+
+DRY_RUN = False
+
+# Global registry to track all running process PIDs
+_running_processes = set()
+
+
+def _cleanup_all_processes():
+    """Terminate all tracked processes and their children."""
+    print(f"cleanup_all_processes: {_running_processes}")
+    if not _running_processes:
+        return
+
+    # Kill all running processes and their children
+    for pid in list(_running_processes):
+        try:
+            print(f"Terminating process {pid} and its children")
+            p = psutil.Process(pid)
+            # Kill all children first
+            for child in p.children(recursive=True):
+                try:
+                    print(f"Terminating child process {child.pid}")
+                    child.kill()
+                except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
+                    logging.debug(f"Could not kill child {child.pid}: {e}")
+            # Kill the main process
+            p.kill()
+        except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
+            logging.debug(f"Could not kill process {pid}: {e}")
+
+    # Give processes a moment to terminate gracefully
+    time.sleep(0.5)
+
+    # Force kill any remaining processes
+    for pid in list(_running_processes):
+        try:
+            p = psutil.Process(pid)
+            if p.is_running():
+                print(f"Force killing process {pid}")
+                p.kill()
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            pass
+
+    _running_processes.clear()
+    print("All processes terminated.")
+
+
+def _signal_handler(sig, frame):
+    """Handle SIGINT/SIGTERM signals by terminating all processes and their children."""
+    print(f"signal_handler: {sig}, {frame}")
+    if sig in [signal.SIGINT, signal.SIGTERM]:
+        _cleanup_all_processes()
+        sys.exit(0)
+
+
+# Handle SIGINT/SIGTERM signals.
+#
+# NB:
+# - SIGKILL cannot be caught, blocked, or ignored.
+# - signal.SIG_DFL is the default signal handler, which is the default behavior of the system.
+# - SIGINT (2) corresponds to Ctrl+C.
+# - Ctrl-D is not a signal. It's the "end of file" control character.
+# - Every time you call signal.signal(signum, handler) it overwrites the previous handler for that signal.
+#
+# Trouble shooting:
+# - If Ctrl-C is not working, try command "stty isig".
+signal.signal(signal.SIGINT, _signal_handler)
+signal.signal(signal.SIGTERM, _signal_handler)
+
+# Register cleanup function to be called on normal program exit
+atexit.register(_cleanup_all_processes)
+
+
+def _register_process(pid: int):
+    """Register a process PID for cleanup tracking."""
+    _running_processes.add(pid)
+
+
+def _unregister_process(pid: int):
+    """Unregister a process PID from cleanup tracking."""
+    _running_processes.discard(pid)
+
+
+def cleanup_all_processes():
+    """
+    Manually clean up all processes.
+    This can be called programmatically if needed.
+    """
+    _cleanup_all_processes()
 
 
 def tee_print(input_str: str, writers: List[IO]):
@@ -128,7 +216,6 @@ def run_command(
     Returns:
         Tuple[str, int]: A tuple containing the output of the command as a string and the exit code of the process.
     """
-
     original_dir = os.getcwd()
 
     if work_dir:
@@ -160,6 +247,11 @@ def run_command(
     #   "writer.write"
     # - "bufsize=1000" makes the output got buffered (don't set bufsize=1, which
     #   set the buffer mode to "line buffer" and not avaliable for bytes output)
+    # - "start_new_session=True" will put the process to a new session (and a new
+    #   process group), this has 2 effects:
+    #   1. we can kill the it and all its children with os.killpg
+    #   2. it won't receive SIGINT/SIGTERM from the parent process, which means it
+    #      won't get the terminal's SIGINT/SIGTERM so we can handle signal by ourselves
     process = subprocess.Popen(
         command,
         shell=True,
@@ -167,25 +259,14 @@ def run_command(
         stderr=stderr_target,
         text=False,
         bufsize=1000,
-        start_new_session=True,  # so we can kill the whole process group with SIGKILL
+        start_new_session=True,
     )
 
-    def signal_handler(sig, frame):
-        logging.debug(f"get signal: {sig}({signal.strsignal(sig)}), frame: {frame}")
-        if sig == signal.SIGINT:
-            logging.debug("got SIGINT, killing the process group with SIGKILL")
-        try:
-            os.killpg(process.pid, signal.SIGKILL)
-        except Exception:
-            process.kill()
+    # Register the process for cleanup
+    _register_process(process.pid)
 
-    # NB: SIGKILL cannot be caught, blocked, or ignored.
-    # https://docs.python.org/3/library/signal.html#signal.SIGKILL
-    signal.signal(signal.SIGINT, signal_handler)
-    # SIG_DFL is the default signal handler, which is the default behavior of the
-    # system.
-    # https://docs.python.org/3/library/signal.html#signal.SIG_DFL
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    # Note: Signal handlers are already registered at module level
+    # The global signal handler will clean up all processes including this one
 
     writers = []
     if stream_output:
@@ -206,6 +287,9 @@ def run_command(
 
     # Wait for the subprocess to finish
     process.wait()
+
+    # Remove from tracking when done
+    _unregister_process(process.pid)
 
     # Ensure the thread finishes
     thread.join()
@@ -288,11 +372,40 @@ def run_background(
     print(f"running command in background: {command}")
     if log_path:
         with open(log_path, "w") as log_file:
+            # We prevent the process from handling signals by:
+            # - get it its own stdin/stdout/stderr
+            # - put it in a new session (process group)
             process = subprocess.Popen(
-                command, shell=True, stdout=log_file, stderr=log_file
+                command,
+                shell=True,
+                stdin=subprocess.DEVNULL,
+                stdout=log_file,
+                stderr=log_file,
+                start_new_session=True,
             )
     else:
-        process = subprocess.Popen(command, shell=True, stdout=subprocess.DEVNULL)
+        # We prevent the process from handling signals by:
+        # - get it its own stdin/stdout/stderr
+        # - put it in a new session (process group)
+        process = subprocess.Popen(
+            command,
+            shell=True,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+
+    # Register the process for cleanup
+    _register_process(process.pid)
+
+    # Set up a thread to monitor when the process finishes and clean it up
+    def cleanup_when_done():
+        process.wait()  # Wait for process to finish
+        _unregister_process(process.pid)  # Remove from tracking when done
+
+    cleanup_thread = threading.Thread(target=cleanup_when_done, daemon=True)
+    cleanup_thread.start()
 
     os.chdir(original_dir)
     return Process(process.pid)
@@ -391,3 +504,7 @@ def process_stopped(process: subprocess.Popen):
     else:
         logging.debug(f"Process finished with exit code {status}")
         return True
+
+
+# run "stty isig" so Ctrl-C will be intercepted as SIGINT
+# run_command("stty isig")
