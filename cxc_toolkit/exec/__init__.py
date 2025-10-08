@@ -342,6 +342,15 @@ class Process:
             # the force kill
             os.kill(self.pid, signal.SIGKILL)
         except ProcessLookupError:
+            # raised by os (e.g: os.kill) and subprocess
+            pass
+        except psutil.NoSuchProcess:
+            # raised by psutil
+            pass
+        except Exception as e:
+            # catch all other exceptions, since the error in terminate
+            # is not critical
+            logging.error(f"Failed to terminate process {self.pid}: {e}")
             pass
 
 
