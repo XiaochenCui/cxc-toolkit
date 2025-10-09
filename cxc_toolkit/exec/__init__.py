@@ -303,6 +303,7 @@ def run_command(
             # 0: normal exit
             # -9: killed by SIGKILL
             logging.error(f"return code: {process.returncode}")
+            logging.error("output:\n%s", buffer.getvalue().decode("utf-8", errors="replace"))
             raise subprocess.CalledProcessError(
                 returncode=process.returncode, cmd=command, output=buffer.getvalue()
             )
