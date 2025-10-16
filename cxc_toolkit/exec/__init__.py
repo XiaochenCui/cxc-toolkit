@@ -89,6 +89,9 @@ def _signal_handler(sig, frame):
 #
 # Trouble shooting:
 # - If Ctrl-C is not working, try command "stty isig".
+# - "stty -a": show the current terminal settings.
+# - "stty isig": set the terminal settings to allow SIGINT to be caught.
+# - "stty sane": reset the terminal settings to the default.
 signal.signal(signal.SIGINT, _signal_handler)
 signal.signal(signal.SIGTERM, _signal_handler)
 
