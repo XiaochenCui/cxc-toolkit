@@ -202,7 +202,7 @@ def run_command(
     ignore_failure: bool = False,
     slient: bool = False,
     work_dir: Optional[str] = None,
-) -> Tuple[bytes, int]:
+) -> Tuple[str, int]:
     """
     Run a shell command and return its output and exit code.
 
@@ -227,7 +227,7 @@ def run_command(
     if DRY_RUN:
         print(f"(dry run) command: {command}")
         os.chdir(original_dir)
-        return bytes(), 0
+        return "", 0
 
     if not slient:
         print(f"running command: {command}")
@@ -306,14 +306,16 @@ def run_command(
             # 0: normal exit
             # -9: killed by SIGKILL
             logging.error(f"return code: {process.returncode}")
-            logging.error("output:\n%s", buffer.getvalue().decode("utf-8", errors="replace"))
+            logging.error(
+                "output:\n%s", buffer.getvalue().decode("utf-8", errors="replace")
+            )
             raise subprocess.CalledProcessError(
                 returncode=process.returncode, cmd=command, output=buffer.getvalue()
             )
 
     os.chdir(original_dir)
 
-    return buffer.getvalue(), process.returncode
+    return buffer.getvalue().decode("utf-8", errors="replace"), process.returncode
 
 
 class Process:
