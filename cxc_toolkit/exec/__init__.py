@@ -32,11 +32,11 @@ _running_processes = set()
 
 def _cleanup_all_processes():
     """Terminate all tracked processes and their children."""
-    print(f"cleanup_all_processes: {_running_processes}")
     if not _running_processes:
         return
 
     # Kill all running processes and their children
+    print(f"cleanup_all_processes: {_running_processes}")
     for pid in list(_running_processes):
         try:
             print(f"Terminating process {pid} and its children")
@@ -202,6 +202,7 @@ def run_command(
     ignore_failure: bool = False,
     slient: bool = False,
     work_dir: Optional[str] = None,
+    start_new_session: bool = True,
 ) -> Tuple[str, int]:
     """
     Run a shell command and return its output and exit code.
@@ -262,7 +263,7 @@ def run_command(
         stderr=stderr_target,
         text=False,
         bufsize=1000,
-        start_new_session=True,
+        start_new_session=start_new_session,
     )
 
     # Register the process for cleanup
