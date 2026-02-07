@@ -231,7 +231,7 @@ def run_command(
         return "", 0
 
     if not slient:
-        print(f"running command: {command}")
+        print(f"running command: {command}", flush=True)
 
     start_time = time.time()
 
@@ -300,7 +300,7 @@ def run_command(
 
     duration = time.time() - start_time
     if not slient:
-        print(f"command finished in {duration:.2f} seconds.")
+        print(f"command finished in {duration:.2f} seconds.", flush=True)
 
     if not ignore_failure:
         if process.returncode not in [0, -9]:
@@ -330,12 +330,12 @@ class Process:
         Terminate the process.
         """
         try:
-            print(f"terminating process {self.pid}")
+            print(f"terminating process {self.pid}", flush=True)
 
             if terminate_descendants:
                 p = psutil.Process(self.pid)
                 for child in p.children(recursive=True):
-                    print(f"terminating child process {child.pid}")
+                    print(f"terminating child process {child.pid}", flush=True)
 
                     # the normal kill
                     # child.terminate()
@@ -385,7 +385,7 @@ def run_background(
         os.chdir(original_dir)
         return Process(-1)
 
-    print(f"running command in background: {command}")
+    print(f"running command in background: {command}", flush=True)
     if log_path:
         with open(log_path, "w") as log_file:
             # We prevent the process from handling signals by:
