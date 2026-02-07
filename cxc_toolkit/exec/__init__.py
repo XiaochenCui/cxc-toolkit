@@ -222,6 +222,9 @@ def run_command(
     """
     original_dir = os.getcwd()
 
+    if slient:
+        stream_output = False
+
     if work_dir:
         os.chdir(work_dir)
 
